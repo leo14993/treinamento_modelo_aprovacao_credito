@@ -1,0 +1,2 @@
+# treinamento_modelo_aprovacao_credito
+modelo para identificar e classificar clientes inadimplentes
