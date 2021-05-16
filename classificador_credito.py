@@ -6,14 +6,12 @@ Created on Sat May 15 20:40:28 2021
 """
 
 import pandas as pd
-
 from sklearn.preprocessing import LabelBinarizer, MinMaxScaler
-from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split, cross_val_score
-from tqdm import tqdm # verifica o progresso de uma tarefa
 from statistics import mean
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+
 
 
 df = pd.read_csv('conjunto_de_treinamento.csv')
@@ -146,12 +144,14 @@ ajustador_de_escala.fit(x_treino)
 x_treino = ajustador_de_escala.transform(x_treino)
 x_teste  = ajustador_de_escala.transform(x_teste)
 
+
+
 # Usando RandomForest
 
 clfRF = RandomForestClassifier(
     max_depth=4,
 #                              random_state=0,
-                             criterion='entropy',
+#                            criterion='entropy',
 #                              max_features='log2',
                              min_samples_split=2,
                              min_samples_leaf=1,
@@ -176,7 +176,7 @@ print (
 
 clfGB = GradientBoostingClassifier(
 #     loss='exponential',
-#     n_estimators=245,
+    n_estimators=245,
     learning_rate=1.0,
      max_depth=1,
 #     random_state=0,
@@ -186,8 +186,8 @@ clfGB = GradientBoostingClassifier(
 q = 10
 scores = cross_val_score(
         clfGB,
-        x,
-        y.ravel(),
+        x_treino,
+        y_treino.ravel(),
         cv=q
         )
 
@@ -236,16 +236,23 @@ atributos_selecionados = [
 
 testando_modelo = df_teste[atributos_selecionados]
 
+x_teste = testando_modelo.loc[:,testando_modelo.columns].values
 
-resultadoRF = clfRF.predict(testando_modelo)
+ajustador_de_escala = MinMaxScaler()
+ajustador_de_escala.fit(x_teste)
 
-resultadoGB = clfGB.predict(testando_modelo)
+x_teste = ajustador_de_escala.transform(x_teste)
+
+
+resultadoRF = clfRF.predict(x_teste)
+
+resultadoGB = clfGB.predict(x_teste)
 
 dict_resultadoRF = {'id_solicitante': df_teste['id_solicitante'], 'inadimplente': resultadoRF.tolist()}
 df_resultado = pd.DataFrame(data=dict_resultadoRF)
-df_resultado.to_csv (r'previsao_aprovacao_credito_ramdom.csv', index = False, header=True)
+df_resultado.to_csv (r'previsao_aprovacao_credito_ramdom_correcao_escala.csv', index = False, header=True)
 
 dict_resultadoGB = {'id_solicitante': df_teste['id_solicitante'], 'inadimplente': resultadoGB.tolist()}
 df_resultado = pd.DataFrame(data=dict_resultadoGB)
-df_resultado.to_csv (r'previsao_aprovacao_credito_gradient.csv', index = False, header=True)
+df_resultado.to_csv (r'previsao_aprovacao_credito_gradient_correcao_escala.csv', index = False, header=True)
 
